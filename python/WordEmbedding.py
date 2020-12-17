@@ -1,6 +1,7 @@
 import os
 import sys
 import numpy as np
+from alive_progress import alive_bar
 from gensim.models import word2vec
 
 
@@ -14,7 +15,10 @@ def get_word_vector(file_path, feature_size):
 if __name__ == "__main__":
     input_dir = sys.argv[1]
     output_dir = sys.argv[2]
-    feature_size = sys.argv[3]
-    for f in os.listdir(input_dir):
-        vector_matrix = get_word_vector(os.path.join(input_dir, f), feature_size)
-        np.savetxt(os.path.join(output_dir, f), vector_matrix, delimiter=",")
+    feature_size = int(sys.argv[3])
+    file_list = os.listdir(input_dir)
+    with alive_bar(len(file_list)) as bar:
+        for f in file_list:
+            vector_matrix = get_word_vector(os.path.join(input_dir, f), feature_size)
+            np.savetxt(os.path.join(output_dir, f), vector_matrix, delimiter=",")
+            bar()
