@@ -13,7 +13,9 @@ public class MainApp {
     // 切片代码文件夹
     private static final String sliceCodeDir = "OwaspSlice";
     // 提取特征文件夹
-    private static final String resultDir = "MethodFeature";
+    private static final String featureDir = "MethodFeature";
+    // 提取切片特征文件夹
+    private static final String sliceFeatureDir = "SliceFeature";
     // 切片行标签
     private static final String sliceLineFile = "slice.csv";
 
@@ -29,11 +31,11 @@ public class MainApp {
         }
         // 特征提取
         if (arguments.contains("extract")) {
-            FeatureHandler.extractFiles(joinPath(modifyCodeDir), joinPath(resultDir));
+            FeatureHandler.extractFiles(joinPath(modifyCodeDir), joinPath(featureDir));
         }
         // 对切片的特征提取
         if (arguments.contains("extract_slice")) {
-            FeatureHandler.extractFiles(joinPath(sliceCodeDir), joinPath(resultDir));
+            FeatureHandler.extractFiles(joinPath(sliceCodeDir), joinPath(sliceFeatureDir));
         }
     }
 
