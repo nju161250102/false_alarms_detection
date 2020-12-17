@@ -19,6 +19,7 @@ public class SliceHandler {
     /**
      * 根据给出的行号对目录下的Java文件进行切片操作
      * 目前暂未考虑子目录的情况
+     * 输出格式：文件名#序号.csv 序号按lineFile中出现的顺序
      * @param inputDir 输入文件目录
      * @param outputDir 输出文件目录
      * @param lineFile 保存切片行号的csv文件地址
@@ -109,6 +110,8 @@ public class SliceHandler {
                         });
                         return cu.toString();
                     }
+                } else {
+                    m.remove();
                 }
             }
         } catch (FileNotFoundException e) {
