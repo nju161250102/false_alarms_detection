@@ -6,7 +6,6 @@ import com.github.javaparser.ast.visitor.VoidVisitor;
 import lombok.extern.slf4j.Slf4j;
 import preprocess.SeqVisitor;
 import preprocess.SymbolTools;
-import word2vec.Word2VecModel;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -29,30 +28,6 @@ public class FeatureHandler {
             Files.walk(Paths.get(inputDir))
                     .filter(path -> "java".equals(path.toString().substring(path.toString().lastIndexOf(".") + 1)))
                     .forEach(path -> extractSingleFile(path.toFile(), outputDir));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void extractSliceFile(String inputDir, String outputDir) {
-        try {
-            Map<String, String> documents = new HashMap<>();
-            Files.list(Paths.get(inputDir)).forEach(f -> {
-                try {
-                    List<String> lines = Files.readAllLines(f);
-                    log.info(f.toString());
-                    lines.remove(0);
-                    lines.remove(0);
-                    documents.put(f.getFileName().toString(), String.join(" ", lines));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            Map<String, List<Double>> result = Word2VecModel.transformParagraph(documents, 32);
-            CSVTools.createOutputDir(outputDir, "byte");
-            result.forEach((fileName, data) -> {
-                CSVTools.saveVector(outputDir, "byte", fileName.substring(0, 18), data);
-            });
         } catch (IOException e) {
             e.printStackTrace();
         }
