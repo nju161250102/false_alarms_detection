@@ -2,9 +2,8 @@
 function clean_dir() {
     if [ -d $1 ];then
         rm -rf $1
-    else
-        mkdir $1
     fi
+    mkdir $1
 }
 
 function transform() {

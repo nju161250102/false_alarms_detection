@@ -6,7 +6,7 @@ from TrainTask import *
 
 def result_lines(data_set: str, feature_extraction: str, result_dict: dict):
     result = []
-    for model_name, result in result_dict:
+    for model_name, result in result_dict.items():
         result.append({
             "data_set": data_set,
             "feature_extraction": feature_extraction,
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     run_time = int(sys.argv[4])
     df = pd.DataFrame(columns=["data_set", "feature_extraction", "model_name", "acc", "pre", "rec", "f1", "auc"])
     for feature_dir in os.listdir(feature_root):
-        if os.path.isdir(feature_dir):
+        if os.path.isdir(os.path.join(feature_root, feature_dir)):
             name_list = feature_dir.split("_")
             if "v" in feature_dir:
                 t = VectorTask(os.path.join(feature_root, feature_dir), label_file, int(name_list[-1]))
@@ -44,4 +44,5 @@ if __name__ == "__main__":
                 t = WordTask(os.path.join(feature_root, feature_dir), label_file, "Tf")
                 t.run(run_time, 0.7)
                 df = df.append(result_lines(feature_dir, "Tf", t.result_data), ignore_index=True)
+            print()
     df.to_csv(output_path, header=True, index_label=False)

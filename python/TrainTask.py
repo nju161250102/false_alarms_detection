@@ -45,17 +45,15 @@ class TrainTask:
                         else:
                             self.result_data[k] = [l]
 
-    def save_csv(self, output_path: str):
+    def get_result(self):
         """
-        保存结果至csv文件中
-        :param output_path 输出的csv文件地址
+        获取平均值计算后的结果
         """
         d = {}
         for func_name, func_data in self.result_data.items():
             a = np.array(func_data)
             d[func_name] = np.mean(a, axis=0)
-        df = pd.DataFrame(list(d.values()), index=list(d.keys()))
-        df.to_csv(output_path, header=False, index_label=True)
+        return d
 
     def train(self, x_train, y_train, x_test, y_test):
         """
@@ -71,6 +69,9 @@ class TrainTask:
 
 
 class VectorTask(TrainTask):
+    """
+    使用向量数据的训练任务
+    """
 
     def __init__(self, data_dir: str, label_file: str, feature_size: int, seq_len=80):
         self.data_dir = data_dir
