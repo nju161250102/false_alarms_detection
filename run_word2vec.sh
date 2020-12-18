@@ -9,8 +9,7 @@ function clean_dir() {
 
 function transform() {
     data_dir=$1
-    word_array=(word_ans word_aps word_ext ast type)
-    for word in ${word_array[@]}
+    for word in word_ans word_aps word_ext ast type
     do
         for num in 16 32 64
         do

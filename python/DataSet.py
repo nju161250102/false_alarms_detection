@@ -8,8 +8,7 @@ class DataLoader:
     """
     数据加载器，用于加载、划分训练数据集与测试数据集
     """
-    def __init__(self, name: str, data_dir: str):
-        self.name = name
+    def __init__(self, data_dir: str):
         # 自定义设置
         self.compress_flag = False
         # 文件列表，格式：[(文件路径, 文件ID)...]
@@ -59,10 +58,6 @@ class DataLoader:
         for row in df.itertuples():
             self.label_dict[int(row[1][13:18])] = row[2]
 
-    def set_config(self, config_dict: dict):
-        for key, config in config_dict.items():
-            pass
-
     @staticmethod
     def transform_x(x_data):
         result = []
@@ -73,8 +68,8 @@ class DataLoader:
 
 class VectorDataLoader(DataLoader):
 
-    def __init__(self, name: str, data_dir: str):
-        super().__init__(name, data_dir)
+    def __init__(self, data_dir: str):
+        super().__init__(data_dir)
 
     def read_data(self, len_limit: int):
         for file_path, file_id in self.file_list:
@@ -94,8 +89,8 @@ class VectorDataLoader(DataLoader):
 
 class WordDataLoader(DataLoader):
 
-    def __init__(self, name: str, data_dir: str):
-        super().__init__(name, data_dir)
+    def __init__(self, data_dir: str):
+        super().__init__(data_dir)
 
     def read_data(self, handler: str):
         text_data = []
@@ -114,8 +109,8 @@ class WordDataLoader(DataLoader):
 
 class ManualDataLoader(DataLoader):
 
-    def __init__(self, name: str, data_dir: str):
-        super().__init__(name, data_dir)
+    def __init__(self, data_dir: str):
+        super().__init__(data_dir)
 
     def read_data(self):
         for file_path, file_id in self.file_list:
@@ -127,8 +122,8 @@ class ManualDataLoader(DataLoader):
 
 class DocDataLoader(DataLoader):
 
-    def __init__(self, name: str, data_dir: str):
-        super().__init__(name, data_dir)
+    def __init__(self, data_dir: str):
+        super().__init__(data_dir)
 
     def read_data(self):
         for file_path, file_id in self.file_list:
@@ -136,4 +131,3 @@ class DocDataLoader(DataLoader):
                 continue
             df = pd.read_csv(file_path, header=None)
             self.data_list.append((df.values.tolist()[0], self.label_dict[file_id]))
-

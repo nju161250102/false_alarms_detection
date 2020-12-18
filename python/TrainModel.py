@@ -123,10 +123,10 @@ class ModelFactory:
 
     class LstmModel(TrainModel):
 
-        def __init__(self):
+        def __init__(self, input_shape):
             super().__init__()
             self.model = Sequential()
-            self.model.add(LSTM(80, input_shape=(80, 16)))
+            self.model.add(LSTM(80, input_shape=input_shape))
             self.model.add(Dense(80, activation='relu'))
             self.model.add(Dense(32, activation='relu'))
             self.model.add(Dense(16, activation='relu'))
@@ -166,8 +166,8 @@ class ModelFactory:
     def build_cnn2(self):
         self.model = self.Cnn2dModel()
 
-    def build_lstm(self):
-        self.model = self.LstmModel()
+    def build_lstm(self, input_shape=(80, 16)):
+        self.model = self.LstmModel(input_shape)
 
     def train(self, x_train, y_train, reshape=None):
         if self.model is not None:
