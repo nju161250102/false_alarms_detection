@@ -1,7 +1,7 @@
 import os
 import sys
 import pandas as pd
-from TrainTask import *
+from TrainTask import VectorTask, ManualTask, WordTask
 
 
 def result_lines(data_set: str, feature_extraction: str, result_dict: dict):
@@ -32,17 +32,17 @@ if __name__ == "__main__":
             if "v" in feature_dir:
                 t = VectorTask(os.path.join(feature_root, feature_dir), label_file, int(name_list[-1]))
                 t.run(run_time, 0.7)
-                df = df.append(result_lines("word", feature_dir, t.result_data), ignore_index=True)
+                df = df.append(result_lines("word", feature_dir, t.get_result()), ignore_index=True)
             elif "manual" in feature_dir:
                 t = ManualTask(os.path.join(feature_root, feature_dir), label_file)
                 t.run(run_time, 0.7)
-                df = df.append(result_lines("manual", "", t.result_data), ignore_index=True)
+                df = df.append(result_lines("manual", "", t.get_result()), ignore_index=True)
             else:
                 t = WordTask(os.path.join(feature_root, feature_dir), label_file, "Count")
                 t.run(run_time, 0.7)
-                df = df.append(result_lines(feature_dir, "Count", t.result_data), ignore_index=True)
+                df = df.append(result_lines(feature_dir, "Count", t.get_result()), ignore_index=True)
                 t = WordTask(os.path.join(feature_root, feature_dir), label_file, "Tf")
                 t.run(run_time, 0.7)
-                df = df.append(result_lines(feature_dir, "Tf", t.result_data), ignore_index=True)
+                df = df.append(result_lines(feature_dir, "Tf", t.get_result()), ignore_index=True)
             print()
     df.to_csv(output_path, header=True, index_label=False)

@@ -12,27 +12,49 @@ import numpy as np
 
 
 class ModelFactory:
+    """
+    创建训练模型的工厂，具体的模型继承TrainModel父类
+    """
 
     class TrainModel:
-
-        @staticmethod
-        def transform_y(y_data):
-            return to_categorical(y_data)
+        """
+        训练模型的父类，新增模型时增加一个子类的实现
+        train方法与predict方法提供默认实现
+        """
 
         @staticmethod
         def transform_predict(y_predict):
+            """
+            将预测概率转换为0/1标记
+            :param y_predict 预测概率
+            """
             return [1 if row[0] > 0.5 else 0 for row in y_predict]
 
         def __init__(self):
             self.model = None
 
         def train(self, x_train, y_train):
+            """
+            调用model的train方法训练模型
+            :param x_train 训练数据
+            :param y_train 数据标签
+            """
             self.model.fit(x_train, y_train)
 
         def predict(self, x_data) -> list:
+            """
+            调用model的predict方法预测数据标签
+            :param x_data 预测数据
+            """
             return self.model.predict(x_data)
 
         def evaluate(self, x_test, y_test, output=False) -> list:
+            """
+            评估模型效果
+            :param x_test 测试数据
+            :param y_test 测试数据的实际标签
+            :param output 是否输出
+            """
             y_predict = self.predict(x_test)
             acc = accuracy_score(y_test, y_predict)
             pre = precision_score(y_test, y_predict)
@@ -95,7 +117,7 @@ class ModelFactory:
             self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
         def train(self, x_train, y_train):
-            self.model.fit(x_train, self.transform_y(y_train), epochs=20, verbose=0)
+            self.model.fit(x_train, to_categorical(y_train), epochs=20, verbose=0)
 
         def predict(self, x_data) -> list:
             return self.transform_predict(self.model.predict(x_data))
@@ -116,7 +138,7 @@ class ModelFactory:
             self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
         def train(self, x_train, y_train):
-            self.model.fit(x_train, self.transform_y(y_train), epochs=20, verbose=0)
+            self.model.fit(x_train, to_categorical(y_train), epochs=20, verbose=0)
 
         def predict(self, x_data) -> list:
             return self.transform_predict(self.model.predict(x_data))
@@ -134,7 +156,7 @@ class ModelFactory:
             self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
         def train(self, x_train, y_train):
-            self.model.fit(x_train, self.transform_y(y_train), epochs=20, verbose=0)
+            self.model.fit(x_train, to_categorical(y_train), epochs=20, verbose=0)
 
         def predict(self, x_data) -> list:
             return self.transform_predict(self.model.predict(x_data))

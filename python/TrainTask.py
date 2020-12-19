@@ -1,5 +1,5 @@
 import numpy as np
-from DataSet import *
+from DataSet import VectorDataLoader, WordDataLoader, ManualDataLoader
 from TrainModel import ModelFactory
 
 
@@ -8,9 +8,9 @@ class TrainTask:
     Task：在某一类数据上训练不同的机器学习模型，评估效果并进行对比
     具体的训练任务继承此父类，配置合适的数据处理方法与使用的模型
     data_set: 数据集，应当使用DataLoader的子类得到
-    result_data: 评估结果，{模型名: [acc, pre, rec, f1, auc]}
+    result_data: 评估结果，{模型名: [[acc, pre, rec, f1, auc],...]}
     train_functions: 训练方法，{False: [], True: []}，表明数据是否需要被降维处理，以便于列表中的模型使用
-        每个训练方法使用x_train, y_train, x_test, y_test四个参数，返回和result_data格式一致的dict
+        每个训练方法使用self, x_train, y_train, x_test, y_test五个参数，返回和result_data格式一致的dict
     以上成员变量在子类的 init_task 方法中初始化
     """
 
@@ -51,7 +51,11 @@ class TrainTask:
         """
         d = {}
         for func_name, func_data in self.result_data.items():
-            a = np.array(func_data)
+            arr = []
+            for data in func_data:
+                if min(data) > 0.3:
+                    arr.append(data)
+            a = np.array(arr)
             d[func_name] = np.mean(a, axis=0)
         return d
 
@@ -101,6 +105,9 @@ class VectorTask(TrainTask):
 
 
 class ManualTask(TrainTask):
+    """
+    使用人工标注的度量数据的训练任务
+    """
 
     def __init__(self, data_dir: str, label_file: str):
         self.data_dir = data_dir
@@ -116,6 +123,9 @@ class ManualTask(TrainTask):
 
 
 class WordTask(TrainTask):
+    """
+    使用单词进行词频分析的训练任务
+    """
 
     def __init__(self, data_dir: str, label_file: str, counter: str):
         self.data_dir = data_dir
