@@ -53,7 +53,7 @@ class TrainTask:
         for func_name, func_data in self.result_data.items():
             arr = []
             for data in func_data:
-                if min(data) > 0.3:
+                if min(data) > 0.01:
                     arr.append(data)
             a = np.array(arr)
             d[func_name] = np.mean(a, axis=0)

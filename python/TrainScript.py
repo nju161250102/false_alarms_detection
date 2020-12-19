@@ -5,9 +5,12 @@ from TrainTask import VectorTask, ManualTask, WordTask
 
 
 def result_lines(data_set: str, feature_extraction: str, result_dict: dict):
-    result = []
+    """
+    结果转换为csv中的行记录
+    """
+    lines = []
     for model_name, result in result_dict.items():
-        result.append({
+        lines.append({
             "data_set": data_set,
             "feature_extraction": feature_extraction,
             "model_name": model_name,
@@ -17,7 +20,7 @@ def result_lines(data_set: str, feature_extraction: str, result_dict: dict):
             "f1": result[3],
             "auc": result[4],
         })
-    return result
+    return lines
 
 
 if __name__ == "__main__":
