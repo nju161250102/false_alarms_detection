@@ -19,7 +19,7 @@ class DataLoader:
         self.data_list = []
         # 获取文件夹下文件路径与ID的对应关系
         for f in os.listdir(data_dir):
-            self.file_list.append((os.path.join(data_dir, f), int(f[13:18])))
+            self.file_list.append((os.path.join(data_dir, f), os.path.splitext(f)[0]))
 
     def split_data(self, rate: float) -> tuple:
         """
@@ -34,21 +34,6 @@ class DataLoader:
             return self.transform_x(list(train_data[0])), list(train_data[1]), self.transform_x(list(test_data[0])), list(test_data[1])
         return list(train_data[0]), list(train_data[1]), list(test_data[0]), list(test_data[1])
 
-    def load_benchmark_label(self, label_csv: str):
-        """
-        :param label_csv: Benchmark-master/scorecard/ 路径下的扫描结果csv
-        :return: 数据ID到标记的映射
-        """
-        df = pd.read_csv(label_csv)
-        # 误报标 0
-        fp = df[(df[" real vulnerability"] == " false") & (df[" identified by tool"] == " true")]["# test name"].to_list()
-        for test_id in fp:
-            self.label_dict[int(test_id[13:18])] = 0
-        # 正报标 1
-        tp = df[(df[" real vulnerability"] == " true") & (df[" identified by tool"] == " true")]["# test name"].to_list()
-        for test_id in tp:
-            self.label_dict[int(test_id[13:18])] = 1
-
     def load_label(self, label_csv: str):
         """
         :param label_csv: 处理好的标记csv，每行格式[数据ID，标记]
@@ -56,7 +41,7 @@ class DataLoader:
         """
         df = pd.read_csv(label_csv, header=None)
         for row in df.itertuples():
-            self.label_dict[int(row[1][13:18])] = row[2]
+            self.label_dict[row[1]] = row[2]
 
     @staticmethod
     def transform_x(x_data):

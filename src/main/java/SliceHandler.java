@@ -19,32 +19,25 @@ public class SliceHandler {
     /**
      * 根据给出的行号对目录下的Java文件进行切片操作
      * 目前暂未考虑子目录的情况
-     * 输出格式：文件名#序号.csv 序号按lineFile中出现的顺序
+     * 输出格式：文件名#切片行.csv
      * @param inputDir 输入文件目录
      * @param outputDir 输出文件目录
      * @param lineFile 保存切片行号的csv文件地址
      */
     public static void sliceByLines(String inputDir, String outputDir, String lineFile) {
-        // 保存同一文件产生的切片数目
-        Map<String, Integer> countMap = new HashMap<>();
         // 读取保存切片行号的csv文件
         try (BufferedReader reader = new BufferedReader(new FileReader(lineFile))) {
             String line = "";
             while ((line = reader.readLine()) != null) {
                 String[] lineData = line.split(",");
                 // 每行第一个数据为文件名
-                if (countMap.containsKey(lineData[0])) {
-                    countMap.put(lineData[0], countMap.get(lineData[0]) + 1);
-                } else {
-                    countMap.put(lineData[0], 1);
-                }
                 Path javaFilePath = Paths.get(inputDir, lineData[0] + ".java");
                 // 后续数据为切片行号
                 List<Integer> sliceLines = new ArrayList<>();
                 for (int i = 1; i < lineData.length; i++) {
                     sliceLines.add(Integer.parseInt(lineData[i]));
                 }
-                Path sliceFilePath = Paths.get(outputDir, lineData[0] + "#" + countMap.get(lineData[0]) + ".java");
+                Path sliceFilePath = Paths.get(outputDir, lineData[0] + "#" + lineData[lineData.length - 1] + ".java");
 
                 if (!Files.exists(sliceFilePath)) Files.createFile(sliceFilePath);
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(sliceFilePath.toFile()))) {
