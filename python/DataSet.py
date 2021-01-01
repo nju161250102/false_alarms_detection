@@ -2,9 +2,15 @@ import os
 import random
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from imblearn.over_sampling import RandomOverSampler
+from imblearn.under_sampling import RandomUnderSampler
 
 
 class DataLoader:
+
+    over_sample = False
+    under_sample = False
+
     """
     数据加载器，用于加载、划分训练数据集与测试数据集
     """
@@ -31,8 +37,19 @@ class DataLoader:
         train_data = list(zip(*self.data_list[:int(len(self.data_list) * rate)]))
         test_data = list(zip(*self.data_list[int(len(self.data_list) * rate):]))
         if self.compress_flag:
-            return self.transform_x(list(train_data[0])), list(train_data[1]), self.transform_x(list(test_data[0])), list(test_data[1])
-        return list(train_data[0]), list(train_data[1]), list(test_data[0]), list(test_data[1])
+            X_train, y_train, X_test, y_test = self.transform_x(list(train_data[0])), list(train_data[1]), self.transform_x(list(test_data[0])), list(test_data[1])
+        else:
+            X_train, y_train, X_test, y_test = list(train_data[0]), list(train_data[1]), list(test_data[0]), list(test_data[1])
+        if DataLoader.over_sample:
+            ros = RandomOverSampler(random_state=0)
+            X_resampled, y_resampled = ros.fit_sample(X_train, y_train)
+            print(len(X_resampled), len(X_train))
+            return X_resampled, y_resampled, X_test, y_test
+        if DataLoader.under_sample:
+            rus = RandomUnderSampler(random_state=0)
+            X_resampled, y_resampled = rus.fit_sample(X_train, y_train)
+            return X_resampled, y_resampled, X_test, y_test
+        return X_train, y_train, X_test, y_test
 
     def load_label(self, label_csv: str):
         """

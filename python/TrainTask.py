@@ -68,7 +68,7 @@ class TrainTask:
         for func in ["svm", "native_bayes", "random_forest", "decision_tree", "knn", "mlp"]:
             getattr(train_model, "build_" + func)()
             train_model.train(x_train, y_train)
-            result[func] = train_model.evaluate(x_test, y_test, True)
+            result[func] = train_model.evaluate(x_test, y_test)
         return result
 
 
@@ -95,13 +95,13 @@ class VectorTask(TrainTask):
         train_model = ModelFactory()
         train_model.build_cnn((self.seq_len, self.feature_size))
         train_model.train(x_train, y_train)
-        return {"cnn": train_model.evaluate(x_test, y_test, True)}
+        return {"cnn": train_model.evaluate(x_test, y_test)}
 
     def train_lstm(self, x_train, y_train, x_test, y_test):
         train_model = ModelFactory()
         train_model.build_lstm((self.seq_len, self.feature_size))
         train_model.train(x_train, y_train)
-        return {"lstm": train_model.evaluate(x_test, y_test, True)}
+        return {"lstm": train_model.evaluate(x_test, y_test)}
 
 
 class ManualTask(TrainTask):

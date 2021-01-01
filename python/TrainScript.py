@@ -1,6 +1,7 @@
 import os
 import sys
 import pandas as pd
+from DataSet import DataLoader
 from TrainTask import VectorTask, ManualTask, WordTask
 
 
@@ -28,6 +29,11 @@ if __name__ == "__main__":
     label_file = sys.argv[2]
     output_path = sys.argv[3]
     run_time = int(sys.argv[4])
+    sample_method = sys.argv[5]
+    if sample_method == "Over":
+        DataLoader.over_sample = True
+    if sample_method == "Under":
+        DataLoader.under_sample = True
     df = pd.DataFrame(columns=["data_set", "feature_extraction", "model_name", "acc", "pre", "rec", "f1", "auc"])
     for feature_dir in os.listdir(feature_root):
         if os.path.isdir(os.path.join(feature_root, feature_dir)):

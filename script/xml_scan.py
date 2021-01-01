@@ -20,12 +20,14 @@ if __name__ == "__main__":
                         line.append(item.get("rank"))
                         class_name = item.find("Class").get("classname")
                         line.append(class_name)
+                        line.append(item.find("Class").find("SourceLine").get("sourcepath"))
                         for method_node in item.findall("Method"):
                             if method_node.get("classname") == class_name:
                                 line.append(method_node.get("name"))
+                                line.append(method_node.get("signature"))
                                 start_line = int(method_node.find("SourceLine").get("start"))
                                 end_line = int(method_node.find("SourceLine").get("end"))
-                        if len(line) != 7:
+                        if len(line) != 9:
                             continue
                         line.append(0)
                         for source_line in item.findall("SourceLine"):
@@ -35,6 +37,6 @@ if __name__ == "__main__":
         except Exception as e:
             print(f, e)
             continue
-    df = pd.DataFrame(data, columns=["Project", "BugId", "Category", "Type", "Rank", "Class", "Method", "Line"])
+    df = pd.DataFrame(data, columns=["Project", "BugId", "Category", "Type", "Rank", "Class", "ClassPath", "Method", "Signature", "Line"])
     df.to_csv(os.path.join(sys.argv[2], "result.csv"), header=True, index=False)
 
