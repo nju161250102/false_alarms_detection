@@ -25,7 +25,7 @@ class DataLoader:
         self.data_list = []
         # 获取文件夹下文件路径与ID的对应关系
         for f in os.listdir(data_dir):
-            self.file_list.append((os.path.join(data_dir, f), os.path.splitext(f)[0]))
+            self.file_list.append((os.path.join(data_dir, f), os.path.splitext(f)[0][:-7]))
 
     def split_data(self, rate: float) -> tuple:
         """
