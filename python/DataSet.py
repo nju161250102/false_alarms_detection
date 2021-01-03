@@ -2,8 +2,6 @@ import os
 import random
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from imblearn.over_sampling import RandomOverSampler
-from imblearn.under_sampling import RandomUnderSampler
 
 
 class DataLoader:
@@ -33,8 +31,27 @@ class DataLoader:
         train_data = list(zip(*self.data_list[:int(len(self.data_list) * rate)]))
         test_data = list(zip(*self.data_list[int(len(self.data_list) * rate):]))
         if self.compress_flag:
-            return self.transform_x(list(train_data[0])), list(train_data[1]), self.transform_x(list(test_data[0])), list(test_data[1])
-        return list(train_data[0]), list(train_data[1]), list(test_data[0]), list(test_data[1])
+            X_train, y_train, X_test, y_test = self.transform_x(list(train_data[0])), list(train_data[1]), self.transform_x(list(test_data[0])), list(test_data[1])
+        else:
+            X_train, y_train, X_test, y_test = list(train_data[0]), list(train_data[1]), list(test_data[0]), list(test_data[1])
+        if (not DataLoader.over_sample) and (not DataLoader.under_sample):
+            return X_train, y_train, X_test, y_test
+        true_y = sum(y_train)
+        false_y = len(y_train) - true_y
+        less_y = 0 if true_y > false_y else 1
+        more_y = 1 if true_y > false_y else 0
+        less_X = [x[0] for x in filter(lambda m: m[1] == less_y, zip(X_train, y_train))]
+        more_X = [x[0] for x in filter(lambda m: m[1] == more_y, zip(X_train, y_train))]
+        if DataLoader.over_sample:
+            X_train += random.choices(less_X, k=(len(more_X) - len(less_X)))
+            y_train += [less_y] * (len(more_X) - len(less_X))
+        if DataLoader.under_sample:
+            X_train = less_X + more_X[:less_y]
+            y_train = less_y + more_y[:less_y]
+        modified_data = list(zip(X_train, y_train))
+        random.shuffle(modified_data)
+        X_train, y_train = zip(*modified_data)
+        return X_train, y_train, X_test, y_test
 
     def load_label(self, label_csv: str):
         """
@@ -49,15 +66,6 @@ class DataLoader:
             if file_id not in d.keys():
                 continue
             self.file_list.append((os.path.join(self.data_dir, f), d[file_id]))
-        X, y = zip(* self.file_list)
-        if DataLoader.over_sample:
-            ros = RandomOverSampler(random_state=0)
-            X_resampled, y_resampled = ros.fit_sample(list(X), list(y))
-            self.file_list = list(zip(X_resampled, y_resampled))
-        if DataLoader.under_sample:
-            rus = RandomUnderSampler(random_state=0)
-            X_resampled, y_resampled = rus.fit_sample(list(X), list(y))
-            self.file_list = list(zip(X_resampled, y_resampled))
 
     @staticmethod
     def transform_x(x_data):
