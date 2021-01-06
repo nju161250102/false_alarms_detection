@@ -1,19 +1,20 @@
 import os
+import re
 import sys
 import pandas as pd
 from DataSet import DataLoader
 from TrainTask import VectorTask, ManualTask, WordTask
 
 
-def result_lines(data_set: str, feature_extraction: str, result_dict: dict):
+def result_lines(feature: str, to_vector: str, result_dict: dict):
     """
     结果转换为csv中的行记录
     """
     lines = []
     for model_name, result in result_dict.items():
         lines.append({
-            "data_set": data_set,
-            "feature_extraction": feature_extraction,
+            "feature": feature,
+            "to_vector": to_vector,
             "model_name": model_name,
             "acc": result[0],
             "pre": result[1],
@@ -24,24 +25,17 @@ def result_lines(data_set: str, feature_extraction: str, result_dict: dict):
     return lines
 
 
-if __name__ == "__main__":
-    feature_root = sys.argv[1]
-    label_file = sys.argv[2]
-    output_path = sys.argv[3]
-    run_time = int(sys.argv[4])
-    sample_method = sys.argv[5]
-    if sample_method == "Over":
-        DataLoader.over_sample = True
-    if sample_method == "Under":
-        DataLoader.under_sample = True
-    df = pd.DataFrame(columns=["data_set", "feature_extraction", "model_name", "acc", "pre", "rec", "f1", "auc"])
+def train_once(feature_root, label_file, output_path, run_time):
+    df = pd.DataFrame(columns=["feature", "to_vector", "model_name", "acc", "pre", "rec", "f1", "auc"])
     for feature_dir in os.listdir(feature_root):
         if os.path.isdir(os.path.join(feature_root, feature_dir)):
             name_list = feature_dir.split("_")
             if "v" in feature_dir:
                 t = VectorTask(os.path.join(feature_root, feature_dir), label_file, int(name_list[-1]))
                 t.run(run_time, 0.7)
-                df = df.append(result_lines("word", feature_dir, t.get_result()), ignore_index=True)
+                feature_name = re.findall(r"(.*?)_v", feature_dir)[0]
+                vector_method = re.search(r"v_(.*)", feature_dir).group()
+                df = df.append(result_lines(feature_name, vector_method, t.get_result()), ignore_index=True)
             elif "manual" in feature_dir:
                 t = ManualTask(os.path.join(feature_root, feature_dir), label_file)
                 t.run(run_time, 0.7)
@@ -55,3 +49,22 @@ if __name__ == "__main__":
                 df = df.append(result_lines(feature_dir, "Tf", t.get_result()), ignore_index=True)
             print()
     df.to_csv(output_path, header=True, index_label=False)
+
+
+if __name__ == "__main__":
+    feature_root = sys.argv[1]
+    label_file = sys.argv[2]
+    output_path = sys.argv[3]
+    run_time = int(sys.argv[4])
+    sample_method = sys.argv[5]
+    if sample_method == "Over":
+        DataLoader.over_sample = True
+    if sample_method == "Under":
+        DataLoader.under_sample = True
+    if sample_method == "All":
+        train_once(feature_root, label_file, output_path, run_time)
+    if sample_method == "Category":
+        category_list = []
+        for c in category_list:
+            DataLoader.category_list = [c]
+            train_once(feature_root, label_file, os.path.join(output_path,  c + ".csv"), run_time)

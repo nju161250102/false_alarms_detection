@@ -6,8 +6,12 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 class DataLoader:
 
+    # 过采样设置
     over_sample = False
+    # 欠采样设置
     under_sample = False
+    # 用于训练的漏洞分类列表
+    category_list = None
 
     """
     数据加载器，用于加载、划分训练数据集与测试数据集
@@ -46,8 +50,8 @@ class DataLoader:
             X_train += random.choices(less_X, k=(len(more_X) - len(less_X)))
             y_train += [less_y] * (len(more_X) - len(less_X))
         if DataLoader.under_sample:
-            X_train = less_X + more_X[:less_y]
-            y_train = less_y + more_y[:less_y]
+            X_train = less_X + more_X[:len(less_X)]
+            y_train = [less_y] * len(less_X) + [more_y] * len(less_X)
         modified_data = list(zip(X_train, y_train))
         random.shuffle(modified_data)
         X_train, y_train = zip(*modified_data)
@@ -60,7 +64,9 @@ class DataLoader:
         df = pd.read_csv(label_csv, header=None)
         d = {}
         for row in df.itertuples():
-            d[row[1]] = row[2]
+            if DataLoader.category_list is None \
+                    or (DataLoader.category_list is not None and row[3] in DataLoader.category_list):
+                d[row[1]] = row[2]
         for f in os.listdir(self.data_dir):
             file_id = os.path.splitext(f)[0][:-7]
             if file_id not in d.keys():
