@@ -50,6 +50,7 @@ public class FeatureHandler {
                     SymbolTools.nameSubstitute(m);
                     // 特征提取与保存
                     String outputName = javaFile.getName().split("\\.")[0] + "#" + m.getNameAsString();
+                    CSVTools.saveVector(outputDir, "word", outputName, extractWord(m));
                     CSVTools.saveVector(outputDir, "word_ans", outputName, extractWord(m, false, false));
                     CSVTools.saveVector(outputDir, "word_aps", outputName, extractWord(m, false, true));
                     CSVTools.saveVector(outputDir, "word_ext", outputName, extractWord(m, true, true));
@@ -61,6 +62,20 @@ public class FeatureHandler {
             e.printStackTrace();
             log.error(e.toString());
         }
+    }
+
+    /**
+     * 根据方法体进行简单的分词
+     * @param method 方法体
+     * @return word序列
+     */
+    public static List<String> extractWord(MethodDeclaration method) {
+        List<String> words = new ArrayList<>();
+        StringTokenizer stringTokenizer = new StringTokenizer(method.toString(), " \t\n\r\f\";+-.*/(){}[],=!?:");
+        while (stringTokenizer.hasMoreElements()) {
+            words.add(stringTokenizer.nextToken());
+        }
+        return words;
     }
 
     /**
@@ -88,7 +103,7 @@ public class FeatureHandler {
         words = words.stream()
                 .map(s -> {
                     // 替换数字
-                    if (Pattern.compile("[0-9]+").matcher(s).matches()) {
+                    if (Pattern.matches("[0-9]+", s)) {
                         if (Math.abs(Integer.parseInt(s)) < 10) {
                             return s;
                         } else {
@@ -133,9 +148,9 @@ public class FeatureHandler {
         String result = "";
         if (name != null) {
             // 判断是否是下划线命名
-            if (! Pattern.compile( ".*[_]+.*" ).matcher(name).matches()) {
+            if (! Pattern.matches(".*[_]+.*", name)) {
                 // 判断是否包含大写字母
-                if (! Pattern.compile( ".*[A-Z]+.*" ).matcher(name).matches()) {
+                if (! Pattern.matches(".*[A-Z]+.*", name)) {
                     return new String[]{name};
                 }
                 result = name.replaceAll( "([a-z])([A-Z])", "$1" + "_" + "$2" );

@@ -44,10 +44,10 @@ def train_once(feature_root, label_file, output_path, run_time):
                 t = WordTask(os.path.join(feature_root, feature_dir), label_file, "Count")
                 t.run(run_time, 0.7)
                 df = df.append(result_lines(feature_dir, "Count", t.get_result()), ignore_index=True)
-                t = WordTask(os.path.join(feature_root, feature_dir), label_file, "Tf")
+                t = WordTask(os.path.join(feature_root, feature_dir), label_file, "OneHot")
                 t.run(run_time, 0.7)
-                df = df.append(result_lines(feature_dir, "Tf", t.get_result()), ignore_index=True)
-            print()
+                df = df.append(result_lines(feature_dir, "OneHot", t.get_result()), ignore_index=True)
+
     df.to_csv(output_path, header=True, index_label=False)
 
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     label_file = sys.argv[2]
     output_path = sys.argv[3]
     run_time = int(sys.argv[4])
-    sample_method = sys.argv[5]
+    sample_method = sys.argv[5] if len(sys.argv) > 5 else "All"
     if sample_method == "Over":
         DataLoader.over_sample = True
     if sample_method == "Under":
@@ -64,7 +64,14 @@ if __name__ == "__main__":
     if sample_method == "All":
         train_once(feature_root, label_file, output_path, run_time)
     if sample_method == "Category":
-        category_list = []
+        category_list = ["cmdi", "crypto", "hash", "sqli", "pathtraver", "weakrand", "securecookie", "trustbound",
+                         "xpathi", "xss", "ldapi"]
         for c in category_list:
-            DataLoader.category_list = [c]
-            train_once(feature_root, label_file, os.path.join(output_path,  c + ".csv"), run_time)
+            try:
+                DataLoader.category_list = [c]
+                train_once(feature_root, label_file, os.path.join(output_path, c + ".csv"), run_time)
+            except:
+                continue
+    if sample_method == "Study":
+        DataLoader.category_list = ["cmdi", "sqli", "xpathi", "xss", "ldapi"]
+        train_once(feature_root, label_file, output_path, run_time)
