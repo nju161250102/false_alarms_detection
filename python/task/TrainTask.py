@@ -1,12 +1,13 @@
 import numpy as np
-from DataSet import VectorDataLoader, WordDataLoader, ManualDataLoader
-from TrainModel import ModelFactory
+from model import ModelFactory
 
 
 class TrainTask:
     """
     Task：在某一类数据上训练不同的机器学习模型，评估效果并进行对比
     具体的训练任务继承此父类，配置合适的数据处理方法与使用的模型
+    feature_name: 任务对应的特征分类名称
+    vector_method: 任务对特征使用的向量处理方法名称
     data_set: 数据集，应当使用DataLoader的子类得到
     result_data: 评估结果，{模型名: [[acc, pre, rec, f1, auc],...]}
     train_functions: 训练方法，{False: [], True: []}，表明数据是否需要被降维处理，以便于列表中的模型使用
@@ -14,7 +15,9 @@ class TrainTask:
     以上成员变量在子类的 init_task 方法中初始化
     """
 
-    def __init__(self):
+    def __init__(self, feature_name: str, vector_method: str):
+        self.feature_name = feature_name
+        self.vector_method = vector_method
         self.data_set = None
         self.result_data = {}
         self.train_functions = {False: [], True: []}
@@ -45,19 +48,29 @@ class TrainTask:
                         else:
                             self.result_data[k] = [l]
 
-    def get_result(self):
+    def get_result_lines(self):
         """
-        获取平均值计算后的结果
+        先进行平均值计算，然后生成一个字典列表，用于构建Dataframe
+        :return list[dict]
         """
-        d = {}
+        lines = []
         for func_name, func_data in self.result_data.items():
             arr = []
             for data in func_data:
                 if min(data) > 0.01:
                     arr.append(data)
-            a = np.array(arr)
-            d[func_name] = np.mean(a, axis=0)
-        return d
+            measure_result = np.mean(np.array(arr), axis=0)
+            lines.append({
+                "feature": self.feature_name,
+                "to_vector": self.vector_method,
+                "model_name": func_name,
+                "acc": measure_result[0],
+                "pre": measure_result[1],
+                "rec": measure_result[2],
+                "f1": measure_result[3],
+                "auc": measure_result[4],
+            })
+        return lines
 
     def train(self, x_train, y_train, x_test, y_test):
         """
@@ -70,72 +83,3 @@ class TrainTask:
             train_model.train(x_train, y_train)
             result[func] = train_model.evaluate(x_test, y_test)
         return result
-
-
-class VectorTask(TrainTask):
-    """
-    使用向量数据的训练任务
-    """
-
-    def __init__(self, data_dir: str, label_file: str, feature_size: int, seq_len=80):
-        self.data_dir = data_dir
-        self.label_file = label_file
-        self.feature_size = feature_size
-        self.seq_len = seq_len
-        super().__init__()
-
-    def init_task(self):
-        self.data_set = VectorDataLoader(self.data_dir)
-        self.data_set.load_label(self.label_file)
-        self.data_set.read_data(self.seq_len)
-        self.train_functions = {True: [VectorTask.train], False: [VectorTask.train_cnn, VectorTask.train_lstm]}
-        super().init_task()
-
-    def train_cnn(self, x_train, y_train, x_test, y_test):
-        train_model = ModelFactory()
-        train_model.build_cnn((self.seq_len, self.feature_size))
-        train_model.train(x_train, y_train)
-        return {"cnn": train_model.evaluate(x_test, y_test)}
-
-    def train_lstm(self, x_train, y_train, x_test, y_test):
-        train_model = ModelFactory()
-        train_model.build_lstm((self.seq_len, self.feature_size))
-        train_model.train(x_train, y_train)
-        return {"lstm": train_model.evaluate(x_test, y_test)}
-
-
-class ManualTask(TrainTask):
-    """
-    使用人工标注的度量数据的训练任务
-    """
-
-    def __init__(self, data_dir: str, label_file: str):
-        self.data_dir = data_dir
-        self.label_file = label_file
-        super().__init__()
-
-    def init_task(self):
-        self.data_set = ManualDataLoader(self.data_dir)
-        self.data_set.load_label(self.label_file)
-        self.data_set.read_data()
-        self.train_functions = {False: [ManualTask.train], True: []}
-        super().init_task()
-
-
-class WordTask(TrainTask):
-    """
-    使用单词进行词频分析的训练任务
-    """
-
-    def __init__(self, data_dir: str, label_file: str, counter: str):
-        self.data_dir = data_dir
-        self.label_file = label_file
-        self.counter = counter
-        super().__init__()
-
-    def init_task(self):
-        self.data_set = WordDataLoader(self.data_dir)
-        self.data_set.load_label(self.label_file)
-        self.data_set.read_data(self.counter)
-        self.train_functions = {False: [WordTask.train], True: []}
-        super().init_task()

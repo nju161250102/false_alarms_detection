@@ -1,23 +1,20 @@
 import os
 import random
-import numpy as np
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 
 class DataLoader:
+    """
+    数据加载器，用于加载、划分训练数据集与测试数据集
+    """
 
     # 过采样设置
     over_sample = False
     # 欠采样设置
     under_sample = False
-    # 用于训练的漏洞分类列表
+    # 漏洞分类筛选列表（设置为None表示不筛选）
     category_list = None
 
-    """
-    数据加载器，用于加载、划分训练数据集与测试数据集
-    """
     def __init__(self, data_dir: str):
         # 自定义设置
         self.compress_flag = False
@@ -81,73 +78,3 @@ class DataLoader:
         for x in x_data:
             result.append([sum(batch) / len(batch) for batch in x])
         return result
-
-
-class VectorDataLoader(DataLoader):
-
-    def __init__(self, data_dir: str):
-        super().__init__(data_dir)
-
-    def read_data(self, len_limit: int):
-        for file_path, file_label in self.file_list:
-            df = pd.read_csv(file_path, header=None)
-            feature_len = df.shape[0]
-            x_data = []
-            for index, row in df.iterrows():
-                if index < len_limit:
-                    x_data.append(list(row))
-            if feature_len < len_limit:
-                for i in range(feature_len, len_limit):
-                    x_data.append([0 for j in range(df.shape[1])])
-            self.data_list.append((x_data, file_label))
-
-
-class WordDataLoader(DataLoader):
-
-    def __init__(self, data_dir: str):
-        super().__init__(data_dir)
-
-    def read_data(self, handler: str):
-        text_data = []
-        id_list = []
-        for file_path, file_label in self.file_list:
-            df = pd.read_csv(file_path, header=None)
-            text_data.append(" ".join([str(s) for s in df.values.tolist()[0]]))
-            id_list.append(file_label)
-        # One-Hot 编码
-        if handler == "OneHot":
-            encoder = OneHotEncoder()
-            all_text = " ".join(text_data).split(" ")
-            encoder.fit(np.array(all_text).reshape(len(all_text), -1))
-            for i in range(len(text_data)):
-                text_list = text_data[i].split(" ")
-                self.data_list.append((encoder.transform(np.array(text_list).reshape(len(text_list) - 1)), id_list[i]))
-            return
-        # 词频编码或TD-IDF编码
-        else:
-            vectorizer = CountVectorizer() if handler == "Count" else TfidfVectorizer()
-            vector_array = vectorizer.fit_transform(text_data).toarray()
-            for i in range(len(vector_array)):
-                self.data_list.append((vector_array[i], id_list[i]))
-
-
-class ManualDataLoader(DataLoader):
-
-    def __init__(self, data_dir: str):
-        super().__init__(data_dir)
-
-    def read_data(self):
-        for file_path, file_label in self.file_list:
-            with open(file_path) as txt_file:
-                self.data_list.append(([int(s) for s in txt_file.readline().split()[:5]], file_label))
-
-
-class DocDataLoader(DataLoader):
-
-    def __init__(self, data_dir: str):
-        super().__init__(data_dir)
-
-    def read_data(self):
-        for file_path, file_label in self.file_list:
-            df = pd.read_csv(file_path, header=None)
-            self.data_list.append((df.values.tolist()[0], file_label))
