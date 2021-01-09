@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 from model import ModelFactory
 
@@ -31,7 +32,9 @@ class TrainTask:
         :param num 数据集划分-训练-评估的循环次数
         :param rate 训练集划分比率
         """
+        logging.info("Feature Name: %s, vector: %s" % (self.feature_name, self.vector_method))
         self.init_task()
+        logging.info("Init success")
         for i in range(num):
             for flag in [False, True]:
                 if len(self.train_functions[flag]) == 0:

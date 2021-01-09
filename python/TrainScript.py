@@ -1,9 +1,11 @@
 import os
 import sys
+import logging
 from dataset import DataLoader
 from task import TaskFactory
 
 # ------设置------
+logging.basicConfig(level=logging.INFO)
 method_feature = "/home/qmy/Data/MethodFeature/"
 slice_feature = "/home/qmy/Data/SliceFeature/"
 original_label = "/home/qmy/Data/label.csv"

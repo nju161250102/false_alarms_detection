@@ -42,9 +42,9 @@ class TrainModel:
         """
         y_predict = self.predict(x_test)
         acc = accuracy_score(y_test, y_predict)
-        pre = precision_score(y_test, y_predict)
+        pre = precision_score(y_test, y_predict, zero_division=0)
         rec = recall_score(y_test, y_predict)
-        f1 = f1_score(y_test, y_predict)
+        f1 = f1_score(y_test, y_predict, zero_division=0)
         auc = roc_auc_score(y_test, y_predict)
         if output:
             print(acc, pre, rec, f1, auc)
