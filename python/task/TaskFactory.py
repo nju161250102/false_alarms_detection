@@ -49,5 +49,6 @@ class TaskFactory:
         for t in self.task_list:
             t.run(run_time, train_rate)
             result.extend(t.get_result_lines())
-        df = pd.DataFrame(columns=["feature", "to_vector", "model_name", "acc", "pre", "rec", "f1", "auc"])
-        df.to_csv(output_path, header=True, index_label=False)
+            df = pd.DataFrame(data=result,
+                              columns=["feature", "to_vector", "model_name", "acc", "pre", "rec", "f1", "auc"])
+            df.to_csv(output_path, header=True, index_label=False)
