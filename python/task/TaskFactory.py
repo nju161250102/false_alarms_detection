@@ -3,6 +3,7 @@ import pandas as pd
 from .MeasureTask import MeasureTask
 from .WordTask import WordTask
 from .VectorTask import VectorTask
+from .OneHotTask import OneHotTask
 
 
 class TaskFactory:
@@ -29,8 +30,9 @@ class TaskFactory:
                 self.task_list.append(MeasureTask(self.feature_root, feature_dir, self.label_file))
             # 特征类型：单词特征
             else:
-                for v in ["Count", "Tf", "OneHot"]:
+                for v in ["Count", "Tf"]:
                     self.task_list.append(WordTask(self.feature_root, feature_dir, self.label_file, v))
+                self.task_list.append(OneHotTask(self.feature_root, feature_dir, self.label_file))
 
     def auto_add_tasks(self):
         """

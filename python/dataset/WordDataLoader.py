@@ -24,7 +24,8 @@ class WordDataLoader(DataLoader):
             encoder.fit(np.array(all_text).reshape(len(all_text), -1))
             for i in range(len(text_data)):
                 text_list = text_data[i].split(" ")
-                self.data_list.append((encoder.transform(np.array(text_list).reshape(len(text_list), - 1)), id_list[i]))
+                self.data_list.append((encoder.transform(np.array(text_list).reshape(len(text_list), - 1)).tolist(),
+                                       id_list[i]))
             return
         # 词频编码或TD-IDF编码
         else:
