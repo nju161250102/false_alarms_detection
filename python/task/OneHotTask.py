@@ -1,5 +1,5 @@
 import os
-from dataset import WordDataLoader
+from dataset import OneHotDataLoader
 from .TrainTask import TrainTask
 
 
@@ -14,8 +14,8 @@ class OneHotTask(TrainTask):
         super().__init__(feature_dir, "OneHot")
 
     def init_task(self):
-        self.data_set = WordDataLoader(self.data_dir)
+        self.data_set = OneHotDataLoader(self.data_dir)
         self.data_set.load_label(self.label_file)
-        self.data_set.read_data("OneHot")
+        self.data_set.read_data(200)
         self.train_functions = {True: [OneHotTask.train], False: []}
         super().init_task()
