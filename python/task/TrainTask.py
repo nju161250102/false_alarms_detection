@@ -1,3 +1,4 @@
+import gc
 import logging
 import numpy as np
 from model import ModelFactory
@@ -74,6 +75,15 @@ class TrainTask:
                 "auc": measure_result[4],
             })
         return lines
+
+    def clear(self):
+        """
+
+        """
+        del self.data_set
+        self.data_set = None
+        gc.collect()
+
 
     def train(self, x_train, y_train, x_test, y_test):
         """

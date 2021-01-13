@@ -50,7 +50,7 @@ class TaskFactory:
         for t in self.task_list:
             t.run(run_time, train_rate)
             result.extend(t.get_result_lines())
-            logging.info(str.format("Task: %s_%s, Line_sum: %d", t.feature_name, t.vector_method, len(result)))
+            logging.info("Task: %s_%s, Line_sum: %d" % (t.feature_name, t.vector_method, len(result)))
             df = pd.DataFrame(data=result,
                               columns=["feature", "to_vector", "model_name", "acc", "pre", "rec", "f1", "auc"])
             df.to_csv(output_path, header=True, index_label=False)
