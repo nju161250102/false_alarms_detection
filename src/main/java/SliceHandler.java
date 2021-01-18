@@ -1,3 +1,4 @@
+import com.github.javaparser.Position;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
@@ -10,9 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 public class SliceHandler {
@@ -27,7 +26,7 @@ public class SliceHandler {
     public static void sliceByLines(String inputDir, String outputDir, String lineFile) {
         // 读取保存切片行号的csv文件
         try (BufferedReader reader = new BufferedReader(new FileReader(lineFile))) {
-            String line = "";
+            String line;
             while ((line = reader.readLine()) != null) {
                 String[] lineData = line.split(",");
                 // 每行第一个数据为文件名
@@ -39,9 +38,11 @@ public class SliceHandler {
                 }
                 Path sliceFilePath = Paths.get(outputDir, lineData[0] + "#" + lineData[lineData.length - 1] + ".java");
 
-                if (!Files.exists(sliceFilePath)) Files.createFile(sliceFilePath);
+                if (!Files.exists(sliceFilePath)) {
+                    Files.createFile(sliceFilePath);
+                }
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(sliceFilePath.toFile()))) {
-                    writer.write(sliceFile(javaFilePath.toFile(), "doPost", sliceLines));
+                    writer.write(sliceFile(javaFilePath.toFile(), sliceLines));
                     log.info(sliceFilePath.toString());
                 } catch (IOException e) {
                     log.error(e.toString() + " " + lineFile);
@@ -71,35 +72,7 @@ public class SliceHandler {
                     // 方法体存在
                     if (m.getBody().isPresent()) {
                         m.getBody().get().walk(node -> {
-                            // 到根节点的路径上如果有CatchClause节点，直接保留此节点
-                            // 目前没有考虑try-catch的嵌套
-                            Node p = node;
-                            while (true) {
-                                if (p.getParentNode().isPresent()) {
-                                    if (p instanceof CatchClause)
-                                        return;
-                                    p = p.getParentNode().get();
-                                } else {
-                                    break;
-                                }
-                            }
-                            // 检查节点对应的行号范围
-                            if (node.getRange().isPresent()) {
-                                int startLine = node.getRange().get().begin.line;
-                                int endLine = node.getRange().get().end.line;
-                                // 切片行号中是否存在一行在节点的代码范围内
-                                boolean contained = false;
-                                for (int line : lines) {
-                                    if (startLine <= line && line <= endLine) {
-                                        contained = true;
-                                        break;
-                                    }
-                                }
-                                // 不存在说明节点中不包含需要保留到切片的代码，故删除
-                                if (!contained) {
-                                    node.remove();
-                                }
-                            }
+                            sliceMethod(node, lines);
                         });
                         return cu.toString();
                     }
@@ -113,5 +86,56 @@ public class SliceHandler {
         }
         log.error(String.format("%s method not in %s", methodName, file.getAbsolutePath()));
         return "";
+    }
+
+    private static String sliceFile(File file, List<Integer> lines) {
+        try {
+            CompilationUnit cu = StaticJavaParser.parse(file);
+            List<MethodDeclaration> methodList = cu.findAll(MethodDeclaration.class);
+            for (MethodDeclaration m : methodList) {
+                m.getRange().ifPresent(r -> {
+                    if (r.contains(new Position(lines.get(0), 100))) {
+                        sliceMethod(m, lines);
+                    }
+                });
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            log.error(e.toString() + " " + file.getAbsolutePath());
+        }
+        return "";
+    }
+
+    private static void sliceMethod(Node method, List<Integer> lines) {
+        // 到根节点的路径上如果有CatchClause节点，直接保留此节点
+        // 目前没有考虑try-catch的嵌套
+        Node p = method;
+        while (true) {
+            if (p.getParentNode().isPresent()) {
+                if (p instanceof CatchClause) {
+                    return;
+                }
+                p = p.getParentNode().get();
+            } else {
+                break;
+            }
+        }
+        // 检查节点对应的行号范围
+        if (method.getRange().isPresent()) {
+            int startLine = method.getRange().get().begin.line;
+            int endLine = method.getRange().get().end.line;
+            // 切片行号中是否存在一行在节点的代码范围内
+            boolean contained = false;
+            for (int line : lines) {
+                if (startLine <= line && line <= endLine) {
+                    contained = true;
+                    break;
+                }
+            }
+            // 不存在说明节点中不包含需要保留到切片的代码，故删除
+            if (!contained) {
+                method.remove();
+            }
+        }
     }
 }
